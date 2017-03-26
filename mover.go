@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"math/rand"
 )
 
@@ -8,17 +10,27 @@ import (
  * Find the best move for a given board position
  */
 
-func findBestMove(b *Board, myPiece Square) Position {
+func findBestMove(b *Board, myPiece Square) (*Position, error) {
 	// Iterate over the top level moves
 	for {
-		pos := Position{
+		pos := &Position{
 			x: int8(rand.Intn(len(b.rows))),
 			y: int8(rand.Intn(len(b.rows)))}
-		if playMove(b, &pos, myPiece) {
-			return pos
+		counter := 0
+		if isOnBoard(b, pos) {
+			fmt.Println("Checking " + pos.AsString())
+		}
+		if playMove(b, pos, myPiece) {
+			return pos, nil
+		} else {
+			counter++
+			if counter > 100 {
+				fmt.Println("I give up")
+				return nil, errors.New("I give up")
+			}
 		}
 	}
-	return Position{}
+	return nil, errors.New("No more moves")
 }
 func isOnBoard(b *Board, p *Position) bool {
 	return p.x >= 0 && p.y >= 0 &&
@@ -27,29 +39,28 @@ func isOnBoard(b *Board, p *Position) bool {
 func scanDiagonal(b *Board, p *Position, myPiece Square, xinc int8, yinc int8) []Position {
 	turned := make([]Position, 0, len(b.rows))
 	foundOpp := false
-	for true {
-		nextPos := Position{x: p.x + xinc, y: p.x + yinc}
-		if isOnBoard(b, &nextPos) {
-			// nothing to see here
-			continue
-		}
+	nextPos := Position{x: p.x + xinc, y: p.y + yinc}
+	for isOnBoard(b, &nextPos) {
 		if b.getSquare(&nextPos) == Empty {
 			// none of our guys in that line
-			continue
+			break
 		}
 		if b.getSquare(&nextPos) != myPiece {
+			// a line of opponents. build stack and fall-though to iterate
 			turned = append(turned, nextPos)
 			foundOpp = foundOpp || true
-			// otherwise, this is another in a line of opponents.
 		} else {
 			if foundOpp {
 				// we've come to the end of the oppenents
 				return turned
 			} else {
 				// nothing turned
-				continue
+				break
 			}
 		}
+		nextPos = Position{
+			x: nextPos.x + xinc,
+			y: nextPos.y + yinc}
 	}
 	return []Position{}
 }
