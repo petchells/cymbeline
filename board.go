@@ -50,11 +50,12 @@ func newBoard() *Board {
 		{Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty}}
 	return &Board{rows: rows}
 }
-
 func (b *Board) getSquare(p *Position) Square {
 	return b.rows[p.x][p.y]
 }
-
+func (b *Board) setPiece(pos *Position, piece Square) {
+	b.rows[pos.x][pos.y] = piece
+}
 func (b *Board) printboard() {
 	fmt.Print(" ")
 	for i, _ := range b.rows[0] {
