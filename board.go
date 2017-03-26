@@ -2,20 +2,67 @@ package main
 
 import (
 	"fmt"
+	"regexp"
 )
 
+type Square int8
+
 const (
-	Empty = 1 << iota
+	Empty Square = 1 << iota
 	Black
 	White
 )
 
-type board struct {
-	rows [][]int
+type Board struct {
+	rows [][]Square
 }
 
-func (b *board) printboard() {
-	for _, row := range b.rows {
+type Position struct {
+	x, y int8
+}
+
+var validPositionString = regexp.MustCompile(`^[A-Z][1-8]$`)
+
+func positionFromString(s string) *Position {
+	// Use raw strings to avoid having to quote the backslashes.
+	if validPositionString.MatchString(s) {
+		x := 56 - s[1]
+		y := s[0] - 65
+		fmt.Printf("%d, %d\n", x, y)
+		return &Position{x: int8(x), y: int8(y)}
+	}
+	return nil
+}
+
+func (p *Position) AsString() string {
+	return fmt.Sprintf("%c%c", p.y+65, 56-p.x)
+}
+
+func newBoard() *Board {
+	rows := [][]Square{
+		{Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+		{Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+		{Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+		{Empty, Empty, Empty, Black, White, Empty, Empty, Empty},
+		{Empty, Empty, Empty, White, Black, Empty, Empty, Empty},
+		{Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+		{Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
+		{Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty}}
+	return &Board{rows: rows}
+}
+
+func (b *Board) getSquare(p *Position) Square {
+	return b.rows[p.x][p.y]
+}
+
+func (b *Board) printboard() {
+	fmt.Print(" ")
+	for i, _ := range b.rows[0] {
+		fmt.Printf(" %c", i+65)
+	}
+	fmt.Println("")
+	for i, row := range b.rows {
+		fmt.Printf("%c ", 56-i)
 		for _, square := range row {
 			var ch string
 			switch square {
@@ -28,6 +75,12 @@ func (b *board) printboard() {
 			}
 			fmt.Printf("%s ", ch)
 		}
+		fmt.Printf("%c ", 56-i)
 		fmt.Println("")
 	}
+	fmt.Print(" ")
+	for i, _ := range b.rows[0] {
+		fmt.Printf(" %c", i+65)
+	}
+	fmt.Println("")
 }
