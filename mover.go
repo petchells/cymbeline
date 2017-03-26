@@ -1,12 +1,24 @@
 package main
 
+import (
+	"math/rand"
+)
+
 /**
  * Find the best move for a given board position
  */
 
-func findBestMove(b *Board, colour Square) {
+func findBestMove(b *Board, myPiece Square) Position {
 	// Iterate over the top level moves
-
+	for {
+		pos := Position{
+			x: int8(rand.Intn(len(b.rows))),
+			y: int8(rand.Intn(len(b.rows)))}
+		if playMove(b, &pos, myPiece) {
+			return pos
+		}
+	}
+	return Position{}
 }
 func isOnBoard(b *Board, p *Position) bool {
 	return p.x >= 0 && p.y >= 0 &&
@@ -56,27 +68,21 @@ func scanAllDiagonals(b *Board, p *Position, myPiece Square) []Position {
 	}
 	return turned
 }
-func playMove(b *Board, p *Position, myPiece Square) bool {
-	if b.getSquare(p) != Empty {
-		return false
+func findTurned(b *Board, p *Position, myPiece Square) []Position {
+	if !isOnBoard(b, p) || b.getSquare(p) != Empty {
+		return []Position{}
 	}
 	// look along all diagonals for turned pieces
-	positions := scanAllDiagonals(b, p, myPiece)
-	if len(positions) == 0 {
-		// no pieces were actually turned
+	return scanAllDiagonals(b, p, myPiece)
+}
+func playMove(b *Board, p *Position, myPiece Square) bool {
+	turned := findTurned(b, p, myPiece)
+	if len(turned) == 0 {
 		return false
 	}
 	b.setPiece(p, myPiece)
-	for _, pos := range positions {
+	for _, pos := range turned {
 		b.setPiece(&pos, myPiece)
 	}
-	return true
-}
-func isValidMove(b *Board, p *Position, myPiece Square) bool {
-	if b.getSquare(p) != Empty {
-		return false
-	}
-	// must have an opposing piece next to it
-
 	return true
 }
