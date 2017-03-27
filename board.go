@@ -76,8 +76,7 @@ func (b *Board) printboard() {
 			}
 			fmt.Printf("%s ", ch)
 		}
-		fmt.Printf("%c ", 56-i)
-		fmt.Println("")
+		fmt.Printf("%c\n", 56-i)
 	}
 	fmt.Print(" ")
 	for i, _ := range b.rows[0] {

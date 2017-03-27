@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"math/rand"
 )
 
@@ -17,15 +16,11 @@ func findBestMove(b *Board, myPiece Square) (*Position, error) {
 			x: int8(rand.Intn(len(b.rows))),
 			y: int8(rand.Intn(len(b.rows)))}
 		counter := 0
-		if isOnBoard(b, pos) {
-			fmt.Println("Checking " + pos.AsString())
-		}
 		if playMove(b, pos, myPiece) {
 			return pos, nil
 		} else {
 			counter++
 			if counter > 100 {
-				fmt.Println("I give up")
 				return nil, errors.New("I give up")
 			}
 		}
@@ -45,19 +40,17 @@ func scanDiagonal(b *Board, p *Position, myPiece Square, xinc int8, yinc int8) [
 			// none of our guys in that line
 			break
 		}
-		if b.getSquare(&nextPos) != myPiece {
-			// a line of opponents. build stack and fall-though to iterate
-			turned = append(turned, nextPos)
-			foundOpp = foundOpp || true
-		} else {
-			if foundOpp {
-				// we've come to the end of the oppenents
-				return turned
-			} else {
-				// nothing turned
+		if b.getSquare(&nextPos) == myPiece {
+			if !foundOpp {
+				// found our piece but no opponents - nothing turned
 				break
 			}
+			// found our piece at the end of a line of oppenents
+			return turned
 		}
+		// found a line of opponents. build stack and iterate
+		turned = append(turned, nextPos)
+		foundOpp = foundOpp || true
 		nextPos = Position{
 			x: nextPos.x + xinc,
 			y: nextPos.y + yinc}
