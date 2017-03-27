@@ -28,7 +28,6 @@ func positionFromString(s string) *Position {
 	if validPositionString.MatchString(s) {
 		x := 56 - s[1]
 		y := s[0] - 65
-		fmt.Printf("%d, %d\n", x, y)
 		return &Position{x: int8(x), y: int8(y)}
 	}
 	return nil
@@ -39,6 +38,8 @@ func (p *Position) AsString() string {
 }
 
 func newBoard() *Board {
+	// The number of rows and columns doesn't need to be 8 (the code uses
+	// len(rows) when iterating). It *does* have to be square, though.
 	rows := [][]Square{
 		{Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
 		{Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},

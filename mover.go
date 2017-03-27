@@ -5,42 +5,50 @@ import (
 	"math/rand"
 )
 
+type Mover struct {
+	b *Board
+}
+type Score struct {
+	pos   *Position
+	score float32
+}
+
 /**
  * Find the best move for a given board position
  */
-
-func findBestMove(b *Board, myPiece Square) (*Position, error) {
+func (m *Mover) findBestMove(myPiece Square) (*Position, error) {
 	// Iterate over the top level moves
-	for {
-		pos := &Position{
-			x: int8(rand.Intn(len(b.rows))),
-			y: int8(rand.Intn(len(b.rows)))}
-		counter := 0
-		if playMove(b, pos, myPiece) {
-			return pos, nil
-		} else {
-			counter++
-			if counter > 100 {
-				return nil, errors.New("I give up")
+	validMoves := make([]Score, 0, 30)
+	for i := 0; i < len(m.b.rows[0]); i++ {
+		for j := 0; j < len(m.b.rows); j++ {
+			pos := &Position{
+				x: int8(i),
+				y: int8(j)}
+			if m.isValidMove(pos, myPiece) {
+				validMoves = append(validMoves, Score{pos: pos, score: 100})
 			}
 		}
 	}
-	return nil, errors.New("No more moves")
+	if len(validMoves) == 0 {
+		return nil, errors.New("No moves possible")
+	}
+	move := validMoves[rand.Intn(len(validMoves))]
+	return move.pos, nil
 }
-func isOnBoard(b *Board, p *Position) bool {
+func (m *Mover) isOnBoard(p *Position) bool {
 	return p.x >= 0 && p.y >= 0 &&
-		p.x < int8(len(b.rows)) && p.y < int8(len(b.rows))
+		p.x < int8(len(m.b.rows[0])) && p.y < int8(len(m.b.rows))
 }
-func scanDiagonal(b *Board, p *Position, myPiece Square, xinc int8, yinc int8) []Position {
-	turned := make([]Position, 0, len(b.rows))
+func (m *Mover) scanDiagonal(p *Position, myPiece Square, xinc int8, yinc int8) []Position {
+	turned := make([]Position, 0, len(m.b.rows))
 	foundOpp := false
 	nextPos := Position{x: p.x + xinc, y: p.y + yinc}
-	for isOnBoard(b, &nextPos) {
-		if b.getSquare(&nextPos) == Empty {
+	for m.isOnBoard(&nextPos) {
+		if m.b.getSquare(&nextPos) == Empty {
 			// none of our guys in that line
 			break
 		}
-		if b.getSquare(&nextPos) == myPiece {
+		if m.b.getSquare(&nextPos) == myPiece {
 			if !foundOpp {
 				// found our piece but no opponents - nothing turned
 				break
@@ -57,14 +65,35 @@ func scanDiagonal(b *Board, p *Position, myPiece Square, xinc int8, yinc int8) [
 	}
 	return []Position{}
 }
-func scanAllDiagonals(b *Board, p *Position, myPiece Square) []Position {
-	turned := make([]Position, 0, len(b.rows)*4)
+func (m *Mover) isValidMove(p *Position, myPiece Square) bool {
+	if !m.isOnBoard(p) || m.b.getSquare(p) != Empty {
+		return false
+	}
 	for i := int8(-1); i <= 1; i++ {
 		for j := int8(-1); j <= 1; j++ {
 			if i == 0 && j == 0 {
 				continue
 			}
-			positions := scanDiagonal(b, p, myPiece, i, j)
+			positions := m.scanDiagonal(p, myPiece, i, j)
+			if len(positions) > 0 {
+				return true
+			}
+		}
+	}
+	return false
+}
+func (m *Mover) findTurned(p *Position, myPiece Square) []Position {
+	if !m.isOnBoard(p) || m.b.getSquare(p) != Empty {
+		return []Position{}
+	}
+	// look along all diagonals for turned pieces
+	turned := make([]Position, 0, len(m.b.rows)*4)
+	for i := int8(-1); i <= 1; i++ {
+		for j := int8(-1); j <= 1; j++ {
+			if i == 0 && j == 0 {
+				continue
+			}
+			positions := m.scanDiagonal(p, myPiece, i, j)
 			if len(positions) > 0 {
 				turned = append(turned, positions...)
 			}
@@ -72,21 +101,14 @@ func scanAllDiagonals(b *Board, p *Position, myPiece Square) []Position {
 	}
 	return turned
 }
-func findTurned(b *Board, p *Position, myPiece Square) []Position {
-	if !isOnBoard(b, p) || b.getSquare(p) != Empty {
-		return []Position{}
-	}
-	// look along all diagonals for turned pieces
-	return scanAllDiagonals(b, p, myPiece)
-}
-func playMove(b *Board, p *Position, myPiece Square) bool {
-	turned := findTurned(b, p, myPiece)
+func (m *Mover) playMove(p *Position, myPiece Square) bool {
+	turned := m.findTurned(p, myPiece)
 	if len(turned) == 0 {
 		return false
 	}
-	b.setPiece(p, myPiece)
+	m.b.setPiece(p, myPiece)
 	for _, pos := range turned {
-		b.setPiece(&pos, myPiece)
+		m.b.setPiece(&pos, myPiece)
 	}
 	return true
 }
