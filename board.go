@@ -34,7 +34,7 @@ func positionFromString(s string) *Position {
 }
 
 func (p *Position) AsString() string {
-	return fmt.Sprintf("%c%c", p.y+65, 56-p.x)
+	return fmt.Sprintf("%c%c", 65+p.y, 56-p.x)
 }
 
 func newBoard() *Board {
@@ -60,7 +60,7 @@ func (b *Board) setPiece(pos *Position, piece Square) {
 func (b *Board) printboard() {
 	fmt.Print(" ")
 	for i, _ := range b.rows[0] {
-		fmt.Printf(" %c", i+65)
+		fmt.Printf(" %c", 65+i)
 	}
 	fmt.Println("")
 	for i, row := range b.rows {
@@ -81,7 +81,7 @@ func (b *Board) printboard() {
 	}
 	fmt.Print(" ")
 	for i, _ := range b.rows[0] {
-		fmt.Printf(" %c", i+65)
+		fmt.Printf(" %c", 65+i)
 	}
 	fmt.Println("")
 }
