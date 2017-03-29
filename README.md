@@ -1,2 +1,3 @@
-# cymbeline
-Plays reversi
+# Cymbeline
+
+A Go app that plays the board game reversi. 
