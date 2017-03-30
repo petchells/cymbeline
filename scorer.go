@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"math"
+)
+
 type ScoreParams struct {
 	// multiplier of piece count for each move
 	pieceCountWeights []int
@@ -14,6 +19,28 @@ type Scorer struct {
 	params  *ScoreParams
 }
 
+func scoreParams1() ScoreParams {
+	var weights []int
+	for i := 0; i < 60; i++ {
+		w := 10.3 - (2.5 * math.Log1p(float64(59-i)))
+		fmt.Printf("%f\n", w)
+		weights = append(weights, int(w))
+	}
+	return ScoreParams{pieceCountWeights: weights}
+}
 func (s *Scorer) calculateScore() int {
-	return 1
+	nrPiecesPlayed := 0
+	nrMyPieces := 0
+	// count pieces
+	for i := 0; i < len(s.b.rows[0]); i++ {
+		for j := 0; j < len(s.b.rows); j++ {
+			if s.b.rows[i][j] != Empty {
+				nrPiecesPlayed += 1
+				if s.b.rows[i][j] == s.myPiece {
+					nrMyPieces += 1
+				}
+			}
+		}
+	}
+	return s.params.pieceCountWeights[nrPiecesPlayed]
 }
