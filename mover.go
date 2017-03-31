@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 )
 
@@ -10,7 +11,7 @@ type Mover struct {
 }
 type Score struct {
 	pos   *Position
-	score float32
+	score float64
 }
 
 /**
@@ -18,14 +19,40 @@ type Score struct {
  */
 func (m *Mover) findBestMove(myPiece Square) (*Position, error) {
 	// Iterate over the top level moves
-	validMoves := make([]Score, 0, 30)
+	validMoves := []Score{}
 	for i := 0; i < len(m.b.rows[0]); i++ {
 		for j := 0; j < len(m.b.rows); j++ {
 			pos := &Position{
 				x: int8(i),
 				y: int8(j)}
 			if m.isValidMove(pos, myPiece) {
-				validMoves = append(validMoves, Score{pos: pos, score: 100})
+				m.playMove(pos, myPiece)
+				m.b.printboard()
+				score := dynamic_heuristic_evaluation_function(m.b.rows, myPiece)
+				validMoves = append(validMoves, Score{pos: pos, score: score})
+				fmt.Printf("Score: %f, Position: %s\n", score, pos.AsString())
+			}
+		}
+	}
+	if len(validMoves) == 0 {
+		return nil, errors.New("No moves possible")
+	}
+	move := validMoves[rand.Intn(len(validMoves))]
+	return move.pos, nil
+}
+func (m *Mover) findBestMoveAlt(myPiece Square) (*Position, error) {
+	// Iterate over the top level moves
+	validMoves := make([]Score, 0, 30)
+	pos := &Position{}
+	for i := 0; i < len(m.b.rows[0]); i++ {
+		for j := 0; j < len(m.b.rows); j++ {
+			pos.x = int8(i)
+			pos.y = int8(j)
+			if m.isValidMove(pos, myPiece) {
+				m.playMove(pos, myPiece)
+				score := dynamic_heuristic_evaluation_function(m.b.rows, myPiece)
+				validMoves = append(validMoves, Score{pos: pos, score: score})
+				fmt.Printf("Score: %f, Position: %s\n", score, pos.AsString())
 			}
 		}
 	}

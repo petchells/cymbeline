@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	// "fmt"
 	"math"
 )
 
@@ -33,7 +33,7 @@ func scoreParams1() ScoreParams {
 	var weights []int
 	for i := 0; i < 60; i++ {
 		w := 10.3 - (2.5 * math.Log1p(float64(59-i)))
-		fmt.Printf("%f\n", w)
+		// fmt.Printf("%f\n", w)
 		weights = append(weights, int(w))
 	}
 	return ScoreParams{pieceCountWeights: weights}

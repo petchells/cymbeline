@@ -1,10 +1,5 @@
 package main
 
-type Heuristic struct {
-	grid    [][]Square
-	myPiece Square
-}
-
 func canmove(self Square, opp Square, str [10]Square) bool {
 	if str[0] != opp {
 		return false
@@ -20,7 +15,7 @@ func canmove(self Square, opp Square, str [10]Square) bool {
 	return false
 }
 
-func isLegalMove(self Square, opp Square, grid [][]Square, startx int, starty int) bool {
+func isLegalMove(self Square, opp Square, grid [8][8]Square, startx int, starty int) bool {
 	if grid[startx][starty] != Empty {
 		return false
 	}
@@ -49,7 +44,7 @@ func isLegalMove(self Square, opp Square, grid [][]Square, startx int, starty in
 	return false
 }
 
-func num_valid_moves(self Square, opp Square, grid [][]Square) int {
+func num_valid_moves(self Square, opp Square, grid [8][8]Square) int {
 	count := 0
 	for i := 0; i < 8; i++ {
 		for j := 0; j < 8; j++ {
@@ -62,11 +57,9 @@ func num_valid_moves(self Square, opp Square, grid [][]Square) int {
 }
 
 /*
- * Assuming my_color stores your color and opp_color stores opponent's color
- * '-' indicates an empty square on the board
- * 'b' indicates a black tile and 'w' indicates a white tile on the board
+ * Assuming my_color stores your color
  */
-func dynamic_heuristic_evaluation_function(grid [][]Square, my_color Square) float64 {
+func dynamic_heuristic_evaluation_function(grid [8][8]Square, my_color Square) float64 {
 	my_tiles := 0
 	opp_tiles := 0
 	my_front_tiles := 0
@@ -75,7 +68,6 @@ func dynamic_heuristic_evaluation_function(grid [][]Square, my_color Square) flo
 	if my_color == Black {
 		opp_color = White
 	}
-	// k, my_front_tiles = 0, opp_front_tiles = 0, x, y;
 
 	X1 := []int{-1, -1, 0, 1, 1, 1, 0, -1}
 	Y1 := []int{0, 1, 1, 1, 0, -1, -1, -1}
@@ -101,7 +93,7 @@ func dynamic_heuristic_evaluation_function(grid [][]Square, my_color Square) flo
 				d -= V[i][j]
 				opp_tiles += 1
 			}
-			if grid[i][j] != '-' {
+			if grid[i][j] != Empty {
 				for k := 0; k < 8; k++ {
 					x := i + X1[k]
 					y := j + Y1[k]

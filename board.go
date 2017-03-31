@@ -14,7 +14,17 @@ const (
 )
 
 type Board struct {
-	rows [][]Square
+	rows [8][8]Square
+}
+
+func (b *Board) copy() *Board {
+	cp := [8][8]Square{}
+	for i := 0; i < 8; i++ {
+		for j := 0; j < 8; j++ {
+			cp[i][j] = b.rows[i][j]
+		}
+	}
+	return &Board{cp}
 }
 
 type Position struct {
@@ -32,15 +42,14 @@ func positionFromString(s string) *Position {
 	}
 	return nil
 }
-
 func (p *Position) AsString() string {
 	return fmt.Sprintf("%c%c", 65+p.y, 56-p.x)
 }
-
 func newBoard() *Board {
 	// The number of rows and columns doesn't need to be 8 (the code uses
 	// len(rows) when iterating). It *does* have to be square, though.
-	rows := [][]Square{
+	var rows [8][8]Square
+	rows = [8][8]Square{
 		{Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
 		{Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
 		{Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},

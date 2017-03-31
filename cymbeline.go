@@ -10,17 +10,12 @@ import (
 	"time"
 )
 
-func main() {
-	rand.Seed(time.Now().UnixNano())
+func playGame() *Board {
 	b := newBoard()
 	userPiece := Black
 	myPiece := White
 quit:
 	for {
-		sp1 := scoreParams1()
-		fmt.Printf("params %q\n", sp1.pieceCountWeights)
-		// s := Scorer{b: b, myPiece: myPiece, params: &sp1}
-		// fmt.Printf("Scorer %q\n", s)
 		b.printboard()
 		m := Mover{b}
 		pos, err := m.findBestMove(myPiece)
@@ -44,6 +39,11 @@ quit:
 			}
 		}
 	}
+	return b
+}
+func main() {
+	rand.Seed(time.Now().UnixNano())
+	playGame()
 }
 
 func getInput() string {
