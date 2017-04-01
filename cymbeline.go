@@ -10,45 +10,59 @@ import (
 	"time"
 )
 
-func playGame() *Board {
-	b := newBoard()
-	userPiece := Black
-	myPiece := White
-quit:
-	for {
-		b.printboard()
-		m := Mover{b}
-		pos, err := m.findBestMove(myPiece)
-		m.playMove(pos, myPiece)
-		if err == nil {
-			fmt.Println("I've played " + pos.AsString())
-			b.printboard()
-		} else {
-			fmt.Printf("%q", err)
-		}
-		for {
-			move := strings.ToUpper(strings.TrimSpace(getInput()))
-			userMove := positionFromString(move)
-			if userMove == nil {
-				fmt.Println("Quitting")
-				break quit
-			}
-			if m.isValidMove(userMove, userPiece) {
-				m.playMove(userMove, userPiece)
-				break
-			}
-		}
-	}
-	return b
-}
 func main() {
 	rand.Seed(time.Now().UnixNano())
 	playGame()
 }
 
-func getInput() string {
+func playGame() *Board {
+	b := newBoard()
+	p1 := Black
+	p2 := White
+	movePossible := false
+	b.printboard()
+quit:
+	for {
+		if b.hasValidMove(p1) {
+			movePossible = true
+			pos := b.findBestMove(p1)
+			b.playMove(pos, p1)
+			fmt.Println("I've played " + pos.AsString())
+		} else {
+			fmt.Println("I can't go")
+			if !movePossible {
+				return b
+			}
+			movePossible = false
+		}
+		if b.hasValidMove(p2) {
+			movePossible = true
+			for {
+				b.printboard()
+				userMove := getHumanMove()
+				if userMove == nil {
+					fmt.Println("Quitting")
+					break quit
+				}
+				if b.isValidMove(userMove, p2) {
+					b.playMove(userMove, p2)
+					break
+				}
+			}
+		} else {
+			fmt.Println("You can't go")
+			if !movePossible {
+				return b
+			}
+			movePossible = false
+		}
+	}
+	return b
+}
+
+func getHumanMove() *Position {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Enter move: ")
 	text, _ := reader.ReadString('\n')
-	return text
+	return positionFromString(strings.ToUpper(strings.TrimSpace(text)))
 }

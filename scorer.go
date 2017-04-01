@@ -15,6 +15,11 @@ var posWeights = [][]int{
 	{-3, -4, -1, -1, -1, -1, -4, -3},
 	{20, -3, 11, 8, 8, 11, -3, 20}}
 
+type Score struct {
+	pos   *Position
+	score float64
+}
+
 type ScoreParams struct {
 	// multiplier of piece count for each move
 	pieceCountWeights []int
