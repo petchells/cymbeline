@@ -129,6 +129,19 @@ func (moves ByScore) Swap(i, j int) {
 func (moves ByScore) Less(i, j int) bool {
 	return moves[j].score < moves[i].score
 }
+func (b *Board) countPieces() (int, int) {
+	wht, blk := 0, 0
+	for i := 0; i < 8; i++ {
+		for j := 0; j < 8; j++ {
+			if b.rows[i][j] == White {
+				wht += 1
+			} else if b.rows[i][j] == Black {
+				blk += 1
+			}
+		}
+	}
+	return wht, blk
+}
 
 /**
  * Find the best move for a given board position
@@ -147,7 +160,7 @@ func (b *Board) findBestMove(myPiece Square) *Position {
 				// bcp.printboard()
 				score := dynamic_heuristic_evaluation_function(bcp.rows, myPiece)
 				validMoves = append(validMoves, Score{pos: pos, score: score})
-				fmt.Printf("Score: %f, Position: %s\n", score, pos.AsString())
+				// fmt.Printf("Score: %f, Position: %s\n", score, pos.AsString())
 			}
 		}
 	}
@@ -170,7 +183,6 @@ func (b *Board) findBestMoveAlt(myPiece Square) (*Position, error) {
 				b.playMove(pos, myPiece)
 				score := dynamic_heuristic_evaluation_function(b.rows, myPiece)
 				validMoves = append(validMoves, Score{pos: pos, score: score})
-				fmt.Printf("Score: %f, Position: %s\n", score, pos.AsString())
 			}
 		}
 	}

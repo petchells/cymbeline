@@ -12,7 +12,14 @@ import (
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
-	playGame()
+	b := playGame()
+	if b != nil {
+		whiteCount, blackCount := b.countPieces()
+		fmt.Println("White: %d", whiteCount)
+		fmt.Println("Black: %d", blackCount)
+	} else {
+		fmt.Println("User quit")
+	}
 }
 
 func playGame() *Board {
@@ -21,7 +28,7 @@ func playGame() *Board {
 	p2 := White
 	movePossible := false
 	b.printboard()
-quit:
+
 	for {
 		if b.hasValidMove(p1) {
 			movePossible = true
@@ -37,18 +44,12 @@ quit:
 		}
 		if b.hasValidMove(p2) {
 			movePossible = true
-			for {
-				b.printboard()
-				userMove := getHumanMove()
-				if userMove == nil {
-					fmt.Println("Quitting")
-					break quit
-				}
-				if b.isValidMove(userMove, p2) {
-					b.playMove(userMove, p2)
-					break
-				}
+			b.printboard()
+			userMove := getHumanMove(b, p2)
+			if userMove == nil {
+				return nil
 			}
+			b.playMove(userMove, p2)
 		} else {
 			fmt.Println("You can't go")
 			if !movePossible {
@@ -60,9 +61,18 @@ quit:
 	return b
 }
 
-func getHumanMove() *Position {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("Enter move: ")
-	text, _ := reader.ReadString('\n')
-	return positionFromString(strings.ToUpper(strings.TrimSpace(text)))
+func getHumanMove(b *Board, colour Square) *Position {
+	for {
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Print("Enter move: ")
+		text, _ := reader.ReadString('\n')
+		move := positionFromString(strings.ToUpper(strings.TrimSpace(text)))
+		if move == nil {
+			return nil
+		}
+		if b.isValidMove(move, colour) {
+			return move
+		}
+	}
+	return nil
 }
