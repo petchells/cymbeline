@@ -47,18 +47,18 @@ var validPositionStringRev = regexp.MustCompile(`^[1-8][A-Z]$`)
 func positionFromString(s string) *Position {
 	// Use raw strings to avoid having to quote the backslashes.
 	if validPositionString.MatchString(s) {
-		x := 56 - s[1]
+		x := s[1] - 49
 		y := s[0] - 65
 		return &Position{x: int8(x), y: int8(y)}
 	} else if validPositionStringRev.MatchString(s) {
-		x := 56 - s[0]
+		x := s[0] - 49
 		y := s[1] - 65
 		return &Position{x: int8(x), y: int8(y)}
 	}
 	return nil
 }
 func (p *Position) AsString() string {
-	return fmt.Sprintf("%c%c", 65+p.y, 56-p.x)
+	return fmt.Sprintf("%c%c", 65+p.y, 49+p.x)
 }
 func newBoard() *Board {
 	// The number of rows and columns doesn't need to be 8 (the code uses
@@ -88,7 +88,7 @@ func (b *Board) printboard() {
 	}
 	fmt.Println("")
 	for i, row := range b.rows {
-		fmt.Printf("%c ", 56-i)
+		fmt.Printf("%c ", 49+i)
 		for _, square := range row {
 			var ch string
 			switch square {
@@ -101,7 +101,7 @@ func (b *Board) printboard() {
 			}
 			fmt.Printf("%s ", ch)
 		}
-		fmt.Printf("%c\n", 56-i)
+		fmt.Printf("%c\n", 49+i)
 	}
 	fmt.Print(" ")
 	for i, _ := range b.rows[0] {
