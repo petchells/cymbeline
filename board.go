@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"math/rand"
 	"regexp"
@@ -140,7 +139,7 @@ func (b *Board) countPieces() (int, int) {
 			}
 		}
 	}
-	return wht, blk
+	return blk, wht
 }
 
 /**
@@ -157,10 +156,8 @@ func (b *Board) findBestMove(myPiece Square) *Position {
 			if b.isValidMove(pos, myPiece) {
 				bcp := b.copy()
 				bcp.playMove(pos, myPiece)
-				// bcp.printboard()
 				score := dynamic_heuristic_evaluation_function(bcp.rows, myPiece)
 				validMoves = append(validMoves, Score{pos: pos, score: score})
-				// fmt.Printf("Score: %f, Position: %s\n", score, pos.AsString())
 			}
 		}
 	}
@@ -171,7 +168,7 @@ func (b *Board) findBestMove(myPiece Square) *Position {
 	move := validMoves[0]
 	return move.pos
 }
-func (b *Board) findBestMoveAlt(myPiece Square) (*Position, error) {
+func (b *Board) findBestMoveAlt(myPiece Square) *Position {
 	// Iterate over the top level moves
 	validMoves := make([]Score, 0, 30)
 	pos := &Position{}
@@ -187,10 +184,10 @@ func (b *Board) findBestMoveAlt(myPiece Square) (*Position, error) {
 		}
 	}
 	if len(validMoves) == 0 {
-		return nil, errors.New("No moves possible")
+		return nil
 	}
 	move := validMoves[rand.Intn(len(validMoves))]
-	return move.pos, nil
+	return move.pos
 }
 func (b *Board) isOnBoard(p *Position) bool {
 	return p.x >= 0 && p.y >= 0 && p.x < 8 && p.y < 8
