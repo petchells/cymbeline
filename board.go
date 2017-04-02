@@ -170,21 +170,32 @@ func (b *Board) findBestMove(myPiece Square) *Position {
 }
 func (b *Board) findBestMoveAlt(myPiece Square) *Position {
 	// Iterate over the top level moves
-	validMoves := make([]Score, 0, 30)
-	pos := &Position{}
+	validMoves := []Score{}
+	totalScores := 0.0
 	for i := 0; i < len(b.rows[0]); i++ {
 		for j := 0; j < len(b.rows); j++ {
-			pos.x = int8(i)
-			pos.y = int8(j)
+			pos := &Position{
+				x: int8(i),
+				y: int8(j)}
 			if b.isValidMove(pos, myPiece) {
-				b.playMove(pos, myPiece)
-				score := dynamic_heuristic_evaluation_function(b.rows, myPiece)
+				bcp := b.copy()
+				bcp.playMove(pos, myPiece)
+				score := dynamic_heuristic_evaluation_function_alt(bcp.rows, myPiece)
+				totalScores += score
 				validMoves = append(validMoves, Score{pos: pos, score: score})
 			}
 		}
 	}
 	if len(validMoves) == 0 {
 		return nil
+	}
+	sort.Sort(ByScore(validMoves))
+	pick := rand.Float64() * totalScores
+	for i := 0; i < len(validMoves); i++ {
+		totalScores -= validMoves[i].score
+		if pick >= totalScores {
+			return validMoves[i].pos
+		}
 	}
 	move := validMoves[rand.Intn(len(validMoves))]
 	return move.pos
