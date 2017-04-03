@@ -14,13 +14,12 @@ type MoveStrategy func(*Board, Square) *Position
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
+	go serve()
 	b := playGame(optimusPrime, human)
 	if b != nil {
 		blackCount, whiteCount := b.countPieces()
 		fmt.Println("Black: ", blackCount)
 		fmt.Println("White: ", whiteCount)
-	} else {
-		fmt.Println("User quit")
 	}
 }
 
