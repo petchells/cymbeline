@@ -1,20 +1,36 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 )
 
-type Turned struct {
-	Turned []string
+type JsonMoveResponse struct {
+	Turned    string
+	NextValid string
 }
 
 func serve() {
-	http.HandleFunc("/playMove", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:4200")
-		qs := r.URL.Query()
 
+	positionsToString := func(list []Position) string {
+		var buffer bytes.Buffer
+		for i := 0; i < len(list); i++ {
+			buffer.WriteString(list[i].AsString())
+		}
+		return buffer.String()
+	}
+
+	http.HandleFunc("/rpc/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:4200")
+		funcName := r.URL.Path[len("/rpc/"):]
+		if !strings.EqualFold(funcName, "playMove") ||
+			!strings.EqualFold(funcName, "findBestMove") {
+			setResponseStatus(w, "400 - Unsupported method")
+			return
+		}
 		var colour Square
 		switch r.FormValue("c") {
 		case "b":
@@ -23,21 +39,34 @@ func serve() {
 			colour = White
 		default:
 			// throw status 400
+			setResponseStatus(w, "400 - Colour must be `b` or `w`")
+			return
 		}
-		position := r.FormValue("p")
-		if len(qs) == 4 && qs["b"] != nil && qs["w"] != nil &&
-			qs["c"] != nil && qs["p"] != nil {
-			b := createBoardFromRequest(r)
-			turned:= b.findTurned(positionFromString(position)
-			if len(turned) == 0 {
-				// throw status 400. move not possible
+		b := createBoardFromRequest(r)
+		var position *Position
+		if strings.EqualFold(funcName, "playMove") {
+			position = positionFromString(r.FormValue("p"))
+			if position == nil {
+				setResponseStatus(w, "400 - Bad position")
+				return
 			}
-			b.printboard()
-
-			turned := Turned{[]string{"A1"}}
-			json.NewEncoder(w).Encode(turned)position
+		} else {
+			position = b.findBestMove(colour)
 		}
+		turned := b.findTurned(position, colour)
+		opp := Black
+		if colour == Black {
+			opp = White
+		}
+		allValid := b.findAllValidMoves(opp)
+		moveResp := JsonMoveResponse{
+			Turned:    positionsToString(turned),
+			NextValid: positionsToString(allValid),
+		}
+		json.NewEncoder(w).Encode(moveResp)
+
 	})
+
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
@@ -45,8 +74,6 @@ func createBoardFromRequest(r *http.Request) *Board {
 	b := newBoard()
 	black := r.FormValue("b")
 	white := r.FormValue("w")
-	log.Println("black", black)
-	log.Println("white", white)
 	if len(black) == 0 || len(white) == 0 ||
 		len(black)%2 != 0 || len(white)%2 != 0 {
 		return nil
@@ -70,4 +97,9 @@ func createBoardFromRequest(r *http.Request) *Board {
 		return nil
 	}
 	return b
+}
+
+func setResponseStatus(w http.ResponseWriter, msg string) {
+	w.WriteHeader(http.StatusInternalServerError)
+	w.Write([]byte(msg))
 }

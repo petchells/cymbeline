@@ -229,6 +229,20 @@ func (b *Board) scanDiagonal(p *Position, myPiece Square, xinc int8, yinc int8) 
 	}
 	return []Position{}
 }
+func (b *Board) findAllValidMoves(myPiece Square) []Position {
+	p := Position{}
+	list := []Position{}
+	for i := 0; i < len(b.rows[0]); i++ {
+		for j := 0; j < len(b.rows); j++ {
+			p.x, p.y = int8(i), int8(j)
+			if b.isValidMove(&p, myPiece) {
+				list = append(list, p)
+				p = Position{}
+			}
+		}
+	}
+	return list
+}
 func (b *Board) isValidMove(p *Position, myPiece Square) bool {
 	if !b.isOnBoard(p) || b.getSquare(p) != Empty {
 		return false
