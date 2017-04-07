@@ -14,22 +14,28 @@ func serve() {
 	http.HandleFunc("/playMove", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:4200")
 		qs := r.URL.Query()
-		log.Println("blackk", qs)
+
+		var colour Square
+		switch r.FormValue("c") {
+		case "b":
+			colour = Black
+		case "w":
+			colour = White
+		default:
+			// throw status 400
+		}
+		position := r.FormValue("p")
 		if len(qs) == 4 && qs["b"] != nil && qs["w"] != nil &&
 			qs["c"] != nil && qs["p"] != nil {
-			black := qs["b"][0]
-			white := qs["w"][0]
-			colour := qs["c"][0]
-			position := qs["p"][0]
-			log.Println("blackk", black)
-			log.Println("white", white)
-			log.Println("colour", colour)
-			log.Println("position", position)
 			b := createBoardFromRequest(r)
+			turned:= b.findTurned(positionFromString(position)
+			if len(turned) == 0 {
+				// throw status 400. move not possible
+			}
 			b.printboard()
 
 			turned := Turned{[]string{"A1"}}
-			json.NewEncoder(w).Encode(turned)
+			json.NewEncoder(w).Encode(turned)position
 		}
 	})
 	log.Fatal(http.ListenAndServe(":8080", nil))
