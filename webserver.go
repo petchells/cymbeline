@@ -9,8 +9,8 @@ import (
 )
 
 type JsonMoveResponse struct {
-	Turned    string
-	NextValid string
+	Turned    string `json:"turned"`
+	NextValid string `json:"nextValid"`
 }
 
 func serve() {
@@ -26,7 +26,7 @@ func serve() {
 	http.HandleFunc("/rpc/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:4200")
 		funcName := r.URL.Path[len("/rpc/"):]
-		if !strings.EqualFold(funcName, "playMove") ||
+		if !strings.EqualFold(funcName, "playMove") &&
 			!strings.EqualFold(funcName, "findBestMove") {
 			setResponseStatus(w, "400 - Unsupported method")
 			return
@@ -43,6 +43,10 @@ func serve() {
 			return
 		}
 		b := createBoardFromRequest(r)
+		if b == nil {
+			setResponseStatus(w, "400 - board's not right")
+			return
+		}
 		var position *Position
 		if strings.EqualFold(funcName, "playMove") {
 			position = positionFromString(r.FormValue("p"))
@@ -53,7 +57,11 @@ func serve() {
 		} else {
 			position = b.findBestMove(colour)
 		}
+		log.Println(">>>>> 1", position, colour)
+		b.printboard()
 		turned := b.findTurned(position, colour)
+
+		log.Println(">>>>> 1", turned)
 		opp := Black
 		if colour == Black {
 			opp = White
@@ -80,8 +88,9 @@ func createBoardFromRequest(r *http.Request) *Board {
 	}
 	setPieces := func(colour Square, str string) bool {
 		for i := 0; i < len(str); i += 2 {
-			s := str[i : i+1]
+			s := str[i : i+2]
 			if validPositionString.MatchString(s) {
+				log.Println("valid", s)
 				pos := positionFromString(s)
 				if pos == nil {
 					return false
