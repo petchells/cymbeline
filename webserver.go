@@ -11,6 +11,7 @@ import (
 type JsonMoveResponse struct {
 	Turned    string `json:"turned"`
 	NextValid string `json:"nextValid"`
+	Played    string `json:"played"`
 }
 
 func serve() {
@@ -28,7 +29,7 @@ func serve() {
 		funcName := r.URL.Path[len("/rpc/"):]
 		if !strings.EqualFold(funcName, "playMove") &&
 			!strings.EqualFold(funcName, "findBestMove") {
-			setResponseStatus(w, "400 - Unsupported method")
+			setResponseStatus(w, "Unsupported rpc method")
 			return
 		}
 		var colour Square
@@ -39,29 +40,25 @@ func serve() {
 			colour = White
 		default:
 			// throw status 400
-			setResponseStatus(w, "400 - Colour must be `b` or `w`")
+			setResponseStatus(w, "Colour must be `b` or `w`")
 			return
 		}
 		b := createBoardFromRequest(r)
 		if b == nil {
-			setResponseStatus(w, "400 - board's not right")
+			setResponseStatus(w, "Board's not right")
 			return
 		}
 		var position *Position
 		if strings.EqualFold(funcName, "playMove") {
 			position = positionFromString(r.FormValue("p"))
 			if position == nil {
-				setResponseStatus(w, "400 - Bad position")
+				setResponseStatus(w, "Bad position")
 				return
 			}
 		} else {
 			position = b.findBestMove(colour)
 		}
-		log.Println(">>>>> 1", position, colour)
-		b.printboard()
 		turned := b.findTurned(position, colour)
-
-		log.Println(">>>>> 1", turned)
 		opp := Black
 		if colour == Black {
 			opp = White
@@ -70,9 +67,9 @@ func serve() {
 		moveResp := JsonMoveResponse{
 			Turned:    positionsToString(turned),
 			NextValid: positionsToString(allValid),
+			Played:    position.AsString(),
 		}
 		json.NewEncoder(w).Encode(moveResp)
-
 	})
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
@@ -82,15 +79,13 @@ func createBoardFromRequest(r *http.Request) *Board {
 	b := newBoard()
 	black := r.FormValue("b")
 	white := r.FormValue("w")
-	if len(black) == 0 || len(white) == 0 ||
-		len(black)%2 != 0 || len(white)%2 != 0 {
+	if len(black)%2 != 0 || len(white)%2 != 0 {
 		return nil
 	}
 	setPieces := func(colour Square, str string) bool {
 		for i := 0; i < len(str); i += 2 {
 			s := str[i : i+2]
 			if validPositionString.MatchString(s) {
-				log.Println("valid", s)
 				pos := positionFromString(s)
 				if pos == nil {
 					return false
@@ -109,6 +104,6 @@ func createBoardFromRequest(r *http.Request) *Board {
 }
 
 func setResponseStatus(w http.ResponseWriter, msg string) {
-	w.WriteHeader(http.StatusInternalServerError)
+	w.WriteHeader(http.StatusBadRequest)
 	w.Write([]byte(msg))
 }
