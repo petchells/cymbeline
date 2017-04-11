@@ -28,8 +28,9 @@ func serve() {
 		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:4200")
 		funcName := r.URL.Path[len("/rpc/"):]
 		if !strings.EqualFold(funcName, "playMove") &&
-			!strings.EqualFold(funcName, "findBestMove") {
-			setResponseStatus(w, "Unsupported rpc method")
+			!strings.EqualFold(funcName, "findBestMove") &&
+			!strings.EqualFold(funcName, "findValidMoves") {
+			respondWith400(w, "Unsupported rpc method")
 			return
 		}
 		var colour Square
@@ -40,23 +41,29 @@ func serve() {
 			colour = White
 		default:
 			// throw status 400
-			setResponseStatus(w, "Colour must be `b` or `w`")
+			respondWith400(w, "Colour must be `b` or `w`")
 			return
 		}
 		b := createBoardFromRequest(r)
 		if b == nil {
-			setResponseStatus(w, "Board's not right")
+			respondWith400(w, "Board's not right")
 			return
 		}
 		var position *Position
+		var moveResp JsonMoveResponse
 		if strings.EqualFold(funcName, "playMove") {
 			position = positionFromString(r.FormValue("p"))
 			if position == nil {
-				setResponseStatus(w, "Bad position")
+				respondWith400(w, "Bad position")
 				return
 			}
-		} else {
+		} else if strings.EqualFold(funcName, "findBestMove") {
 			position = b.findBestMove(colour)
+		} else {
+			allValid := b.findAllValidMoves(colour)
+			moveResp = JsonMoveResponse{
+				NextValid: positionsToString(allValid),
+			}
 		}
 		turned := b.findTurned(position, colour)
 		opp := Black
@@ -64,7 +71,7 @@ func serve() {
 			opp = White
 		}
 		allValid := b.findAllValidMoves(opp)
-		moveResp := JsonMoveResponse{
+		moveResp = JsonMoveResponse{
 			Turned:    positionsToString(turned),
 			NextValid: positionsToString(allValid),
 			Played:    position.AsString(),
@@ -103,7 +110,7 @@ func createBoardFromRequest(r *http.Request) *Board {
 	return b
 }
 
-func setResponseStatus(w http.ResponseWriter, msg string) {
+func respondWith400(w http.ResponseWriter, msg string) {
 	w.WriteHeader(http.StatusBadRequest)
 	w.Write([]byte(msg))
 }
