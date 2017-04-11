@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"regexp"
 	"sort"
@@ -236,6 +237,7 @@ func (b *Board) findAllValidMoves(myPiece Square) []Position {
 		for j := 0; j < len(b.rows); j++ {
 			p.x, p.y = int8(i), int8(j)
 			if b.isValidMove(&p, myPiece) {
+				log.Println("Valid move: ", p.AsString())
 				list = append(list, p)
 				p = Position{}
 			}
@@ -247,21 +249,33 @@ func (b *Board) isValidMove(p *Position, myPiece Square) bool {
 	if !b.isOnBoard(p) || b.getSquare(p) != Empty {
 		return false
 	}
-	for i := int8(-1); i <= 1; i++ {
-		for j := int8(-1); j <= 1; j++ {
-			if i == 0 && j == 0 {
-				continue
-			}
-			positions := b.scanDiagonal(p, myPiece, i, j)
-			if len(positions) > 0 {
-				return true
-			}
-		}
+	opp := Black
+	if myPiece == Black {
+		opp = White
 	}
+	//	for i := 0; i < 8; i++ {
+	//		for j := 0; j < 8; j++ {
+	//			if isLegalMove(myPiece, opp, b.rows, i, j) {
+	//				return true
+	//			}
+	//		}
+	//	}
+
+	//	for i := int8(-1); i <= 1; i++ {
+	//		for j := int8(-1); j <= 1; j++ {
+	//			if i == 0 && j == 0 {
+	//				continue
+	//			}
+	//			positions := b.scanDiagonal(p, myPiece, i, j)
+	//			if len(positions) > 0 {
+	//				return true
+	//			}
+	//		}
+	//	}
 	return false
 }
 func (b *Board) findTurned(p *Position, myPiece Square) []Position {
-	if !b.isOnBoard(p) || b.getSquare(p) != Empty {
+	if p == nil || !b.isOnBoard(p) || b.getSquare(p) != Empty {
 		return []Position{}
 	}
 	// look along all diagonals for turned pieces
