@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"math/rand"
@@ -8,7 +9,7 @@ import (
 	"sort"
 )
 
-type Square int8
+type Square int
 
 const (
 	Empty Square = 1 << iota
@@ -39,22 +40,32 @@ func (b *Board) copyFrom(from *Board) {
 }
 
 type Position struct {
-	x, y int8
+	x, y int
 }
 
 var validPositionString = regexp.MustCompile(`^[A-Z][1-8]$`)
 var validPositionStringRev = regexp.MustCompile(`^[1-8][A-Z]$`)
 
+func enumToColour(s Square) string {
+	switch s {
+	case Black:
+		return "black"
+	case White:
+		return "white"
+	default:
+		return ""
+	}
+}
 func positionFromString(s string) *Position {
 	// Use raw strings to avoid having to quote the backslashes.
 	if validPositionString.MatchString(s) {
 		x := s[1] - 49
 		y := s[0] - 65
-		return &Position{x: int8(x), y: int8(y)}
+		return &Position{x: int(x), y: int(y)}
 	} else if validPositionStringRev.MatchString(s) {
 		x := s[0] - 49
 		y := s[1] - 65
-		return &Position{x: int8(x), y: int8(y)}
+		return &Position{x: int(x), y: int(y)}
 	}
 	return nil
 }
@@ -82,6 +93,38 @@ func (b *Board) getSquare(p *Position) Square {
 func (b *Board) setPiece(pos *Position, piece Square) {
 	b.rows[pos.x][pos.y] = piece
 }
+
+func (b *Board) AsString() string {
+	w := bufio.NewWriterSize(100)
+	w.Print(" ")
+	for i, _ := range b.rows[0] {
+		w.Printf(" %c", 65+i)
+	}
+	w.Println("")
+	for i, row := range b.rows {
+		w.Printf("%c ", 49+i)
+		for _, square := range row {
+			var ch string
+			switch square {
+			case White:
+				ch = "●"
+			case Black:
+				ch = "○"
+			default:
+				ch = "."
+			}
+			w.Printf("%s ", ch)
+		}
+		w.Printf("%c\n", 49+i)
+	}
+	w.Print(" ")
+	for i, _ := range b.rows[0] {
+		w.Printf(" %c", 65+i)
+	}
+	w.Println("")
+	return w.String()
+}
+
 func (b *Board) printboard() {
 	fmt.Print(" ")
 	for i, _ := range b.rows[0] {
@@ -152,8 +195,8 @@ func (b *Board) findBestMove(myPiece Square) *Position {
 	for i := 0; i < len(b.rows[0]); i++ {
 		for j := 0; j < len(b.rows); j++ {
 			pos := &Position{
-				x: int8(i),
-				y: int8(j)}
+				x: i,
+				y: j}
 			if b.isValidMove(pos, myPiece) {
 				bcp := b.copy()
 				bcp.playMove(pos, myPiece)
@@ -176,8 +219,8 @@ func (b *Board) findBestMoveAlt(myPiece Square) *Position {
 	for i := 0; i < len(b.rows[0]); i++ {
 		for j := 0; j < len(b.rows); j++ {
 			pos := &Position{
-				x: int8(i),
-				y: int8(j)}
+				x: i,
+				y: j}
 			if b.isValidMove(pos, myPiece) {
 				bcp := b.copy()
 				bcp.playMove(pos, myPiece)
@@ -198,13 +241,18 @@ func (b *Board) findBestMoveAlt(myPiece Square) *Position {
 			return validMoves[i].pos
 		}
 	}
-	move := validMoves[rand.Intn(len(validMoves))]
+	var move Score
+	if l := len(validMoves) / 2; l == 0 {
+		move = validMoves[0]
+	} else {
+		move = validMoves[rand.Intn(l)]
+	}
 	return move.pos
 }
 func (b *Board) isOnBoard(p *Position) bool {
 	return p.x >= 0 && p.y >= 0 && p.x < 8 && p.y < 8
 }
-func (b *Board) scanDiagonal(p *Position, myPiece Square, xinc int8, yinc int8) []Position {
+func (b *Board) scanDiagonal(p *Position, myPiece Square, xinc int, yinc int) []Position {
 	turned := make([]Position, 0, 8)
 	foundOpp := false
 	nextPos := Position{x: p.x + xinc, y: p.y + yinc}
@@ -231,11 +279,13 @@ func (b *Board) scanDiagonal(p *Position, myPiece Square, xinc int8, yinc int8) 
 	return []Position{}
 }
 func (b *Board) findAllValidMoves(myPiece Square) []Position {
-	p := Position{}
+	var p Position
 	list := []Position{}
+	log.Println("findAllValidMoves : ", enumToColour(myPiece))
+	log.Println(b.AsString())
 	for i := 0; i < len(b.rows[0]); i++ {
 		for j := 0; j < len(b.rows); j++ {
-			p.x, p.y = int8(i), int8(j)
+			p.x, p.y = i, j
 			if b.isValidMove(&p, myPiece) {
 				log.Println("Valid move: ", p.AsString())
 				list = append(list, p)
@@ -253,13 +303,7 @@ func (b *Board) isValidMove(p *Position, myPiece Square) bool {
 	if myPiece == Black {
 		opp = White
 	}
-	//	for i := 0; i < 8; i++ {
-	//		for j := 0; j < 8; j++ {
-	//			if isLegalMove(myPiece, opp, b.rows, i, j) {
-	//				return true
-	//			}
-	//		}
-	//	}
+	return isLegalMove(myPiece, opp, b.rows, p.x, p.y)
 
 	//	for i := int8(-1); i <= 1; i++ {
 	//		for j := int8(-1); j <= 1; j++ {
@@ -272,7 +316,7 @@ func (b *Board) isValidMove(p *Position, myPiece Square) bool {
 	//			}
 	//		}
 	//	}
-	return false
+	//return false
 }
 func (b *Board) findTurned(p *Position, myPiece Square) []Position {
 	if p == nil || !b.isOnBoard(p) || b.getSquare(p) != Empty {
@@ -280,8 +324,8 @@ func (b *Board) findTurned(p *Position, myPiece Square) []Position {
 	}
 	// look along all diagonals for turned pieces
 	turned := make([]Position, 0, len(b.rows)*4)
-	for i := int8(-1); i <= 1; i++ {
-		for j := int8(-1); j <= 1; j++ {
+	for i := -1; i <= 1; i++ {
+		for j := -1; j <= 1; j++ {
 			if i == 0 && j == 0 {
 				continue
 			}

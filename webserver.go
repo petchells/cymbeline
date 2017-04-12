@@ -34,11 +34,14 @@ func serve() {
 			return
 		}
 		var colour Square
+		var oppColour Square
 		switch r.FormValue("c") {
 		case "b":
 			colour = Black
+			oppColour = White
 		case "w":
 			colour = White
+			oppColour = Black
 		default:
 			// throw status 400
 			respondWith400(w, "Colour must be `b` or `w`")
@@ -65,7 +68,7 @@ func serve() {
 				positionStr = position.AsString()
 			}
 		} else {
-			allValid := b.findAllValidMoves(colour)
+			allValid := b.findAllValidMoves(oppColour)
 			moveResp = JsonMoveResponse{
 				NextValid: positionsToString(allValid),
 			}

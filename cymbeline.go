@@ -14,13 +14,45 @@ type MoveStrategy func(*Board, Square) *Position
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
+	humanVsMachine()
+}
+
+func humanVsMachine() {
 	go serve()
 	b := playGame(optimusPrime, human)
 	if b != nil {
 		blackCount, whiteCount := b.countPieces()
 		fmt.Println("Black: ", blackCount)
 		fmt.Println("White: ", whiteCount)
+	} else {
+		fmt.Println("Quit")
 	}
+}
+func machineVsMachine() {
+	var b *Board
+	opCnt, waCnt := 0, 0
+	for n := 0; n < 500; n++ {
+		b = playGame(optimusPrime, walle)
+		if b != nil {
+			blackCount, whiteCount := b.countPieces()
+			if blackCount > whiteCount {
+				opCnt += 1
+			} else if whiteCount > blackCount {
+				waCnt += 1
+			}
+		}
+		b = playGame(walle, optimusPrime)
+		if b != nil {
+			blackCount, whiteCount := b.countPieces()
+			if blackCount > whiteCount {
+				waCnt += 1
+			} else if whiteCount > blackCount {
+				opCnt += 1
+			}
+		}
+	}
+	fmt.Println("Optimus Prime: ", opCnt)
+	fmt.Println("Wall-E: ", waCnt)
 }
 
 func playGame(p1Mover MoveStrategy, p2Mover MoveStrategy) *Board {
@@ -35,7 +67,7 @@ func playGame(p1Mover MoveStrategy, p2Mover MoveStrategy) *Board {
 			}
 			b.playMove(p1Move, Black)
 		} else {
-			fmt.Println("No moves are possible for black")
+			//fmt.Println("No moves are possible for black")
 			if !movePossible {
 				return b
 			}
@@ -49,7 +81,7 @@ func playGame(p1Mover MoveStrategy, p2Mover MoveStrategy) *Board {
 			}
 			b.playMove(p2Move, White)
 		} else {
-			fmt.Println("No moves are possible for white")
+			//fmt.Println("No moves are possible for white")
 			if !movePossible {
 				return b
 			}
@@ -60,12 +92,10 @@ func playGame(p1Mover MoveStrategy, p2Mover MoveStrategy) *Board {
 }
 func optimusPrime(b *Board, colour Square) *Position {
 	move := b.findBestMove(colour)
-	fmt.Println("I played: " + move.AsString())
 	return move
 }
 func walle(b *Board, colour Square) *Position {
 	move := b.findBestMoveAlt(colour)
-	fmt.Println("I2 played: " + move.AsString())
 	return move
 }
 func human(b *Board, colour Square) *Position {
