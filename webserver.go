@@ -55,6 +55,16 @@ func serve() {
 		var position *Position
 		var moveResp JsonMoveResponse
 		positionStr := ""
+
+		if strings.EqualFold(funcName, "findValidMoves") {
+			allValid := b.findAllValidMoves(oppColour)
+			moveResp = JsonMoveResponse{
+				NextValid: positionsToString(allValid),
+			}
+			json.NewEncoder(w).Encode(moveResp)
+			return
+		}
+
 		if strings.EqualFold(funcName, "playMove") {
 			position = positionFromString(r.FormValue("p"))
 			if position == nil {
@@ -67,20 +77,10 @@ func serve() {
 			if position != nil {
 				positionStr = position.AsString()
 			}
-		} else {
-			allValid := b.findAllValidMoves(oppColour)
-			moveResp = JsonMoveResponse{
-				NextValid: positionsToString(allValid),
-			}
-			json.NewEncoder(w).Encode(moveResp)
-			return
 		}
 		turned := b.findTurned(position, colour)
-		opp := Black
-		if colour == Black {
-			opp = White
-		}
-		allValid := b.findAllValidMoves(opp)
+		b.playMove(position, colour)
+		allValid := b.findAllValidMoves(oppColour)
 		moveResp = JsonMoveResponse{
 			Turned:    positionsToString(turned),
 			NextValid: positionsToString(allValid),

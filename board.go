@@ -1,9 +1,7 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"log"
 	"math/rand"
 	"regexp"
 	"sort"
@@ -92,37 +90,6 @@ func (b *Board) getSquare(p *Position) Square {
 }
 func (b *Board) setPiece(pos *Position, piece Square) {
 	b.rows[pos.x][pos.y] = piece
-}
-
-func (b *Board) AsString() string {
-	w := bufio.NewWriterSize(100)
-	w.Print(" ")
-	for i, _ := range b.rows[0] {
-		w.Printf(" %c", 65+i)
-	}
-	w.Println("")
-	for i, row := range b.rows {
-		w.Printf("%c ", 49+i)
-		for _, square := range row {
-			var ch string
-			switch square {
-			case White:
-				ch = "●"
-			case Black:
-				ch = "○"
-			default:
-				ch = "."
-			}
-			w.Printf("%s ", ch)
-		}
-		w.Printf("%c\n", 49+i)
-	}
-	w.Print(" ")
-	for i, _ := range b.rows[0] {
-		w.Printf(" %c", 65+i)
-	}
-	w.Println("")
-	return w.String()
 }
 
 func (b *Board) printboard() {
@@ -281,13 +248,10 @@ func (b *Board) scanDiagonal(p *Position, myPiece Square, xinc int, yinc int) []
 func (b *Board) findAllValidMoves(myPiece Square) []Position {
 	var p Position
 	list := []Position{}
-	log.Println("findAllValidMoves : ", enumToColour(myPiece))
-	log.Println(b.AsString())
 	for i := 0; i < len(b.rows[0]); i++ {
 		for j := 0; j < len(b.rows); j++ {
 			p.x, p.y = i, j
 			if b.isValidMove(&p, myPiece) {
-				log.Println("Valid move: ", p.AsString())
 				list = append(list, p)
 				p = Position{}
 			}
