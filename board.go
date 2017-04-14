@@ -158,26 +158,24 @@ func (b *Board) countPieces() (int, int) {
  */
 func (b *Board) findBestMove(myPiece Square) *Position {
 	// Iterate over the top level moves
-	validMoves := []Score{}
-	for i := 0; i < len(b.rows[0]); i++ {
-		for j := 0; j < len(b.rows); j++ {
-			pos := &Position{
-				x: i,
-				y: j}
-			if b.isValidMove(pos, myPiece) {
-				bcp := b.copy()
-				bcp.playMove(pos, myPiece)
-				score := dynamic_heuristic_evaluation_function(bcp.rows, myPiece)
-				validMoves = append(validMoves, Score{pos: pos, score: score})
-			}
+	var pos Position
+	bestScore := -99999999.0
+	validMoves := b.findAllValidMoves(myPiece)
+	for i := 0; i < len(validMoves); i++ {
+		bcp := b.copy()
+		bcp.playMove(&validMoves[i], myPiece)
+		score := dynamic_heuristic_evaluation_function(bcp.rows, myPiece)
+		// randomize the score a bit
+		score = score + (rand.Float64()-.5)*score/10
+		if score > bestScore {
+			bestScore = score
+			pos = validMoves[i]
 		}
 	}
-	if len(validMoves) == 0 {
+	if bestScore == -99999999.0 {
 		return nil
 	}
-	sort.Sort(ByScore(validMoves))
-	move := validMoves[0]
-	return move.pos
+	return &pos
 }
 func (b *Board) findBestMoveAlt(myPiece Square) *Position {
 	// Iterate over the top level moves
