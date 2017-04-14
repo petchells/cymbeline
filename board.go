@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"regexp"
 	"sort"
@@ -161,13 +162,15 @@ func (b *Board) findBestMove(myPiece Square) *Position {
 	var pos Position
 	bestScore := -99999999.0
 	validMoves := b.findAllValidMoves(myPiece)
+	nrBlack, nrWhite := b.countPieces()
+	randomness := float64(nrBlack+nrWhite) / 50.
 	for i := 0; i < len(validMoves); i++ {
 		bcp := b.copy()
 		bcp.playMove(&validMoves[i], myPiece)
 		score := dynamic_heuristic_evaluation_function(bcp.rows, myPiece)
 		// randomize the score a bit
-		score = score + (rand.Float64()-.5)*score/10
-		if score > bestScore {
+		rand := (rand.Float64() - .5) * (1000. + score) / randomness
+		if score+rand > bestScore {
 			bestScore = score
 			pos = validMoves[i]
 		}
