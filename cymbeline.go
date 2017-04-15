@@ -14,7 +14,8 @@ type MoveStrategy func(*Board, Square) *Position
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
-	humanVsMachine()
+	// humanVsMachine()
+	machineVsMachine()
 }
 
 func humanVsMachine() {
@@ -31,7 +32,7 @@ func humanVsMachine() {
 func machineVsMachine() {
 	var b *Board
 	opCnt, waCnt := 0, 0
-	for n := 0; n < 500; n++ {
+	for n := 0; n < 50; n++ {
 		b = playGame(optimusPrime, walle)
 		if b != nil {
 			blackCount, whiteCount := b.countPieces()

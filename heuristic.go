@@ -426,6 +426,6 @@ func dynamic_heuristic_evaluation_function_alt(grid [8][8]Square, my_color Squar
 	}
 
 	// final weighted score
-	score := (10 * p) + (801.724 * float64(c)) + (382.026 * l) + (78.922 * m) + (74.396 * f) + float64(10*d)
+	score := (12 * p) + (801.724 * float64(c)) + (382.026 * l) + (78.922 * m) + (74.396 * f) + float64(9*d)
 	return score
 }

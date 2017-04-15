@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"log"
+	//"log"
 	"math/rand"
 	"regexp"
 	"sort"
@@ -163,13 +163,14 @@ func (b *Board) findBestMove(myPiece Square) *Position {
 	bestScore := -99999999.0
 	validMoves := b.findAllValidMoves(myPiece)
 	nrBlack, nrWhite := b.countPieces()
-	randomness := float64(nrBlack+nrWhite) / 50.
+	randWeight := .0000001 / float64(nrBlack+nrWhite)
 	for i := 0; i < len(validMoves); i++ {
 		bcp := b.copy()
 		bcp.playMove(&validMoves[i], myPiece)
 		score := dynamic_heuristic_evaluation_function(bcp.rows, myPiece)
 		// randomize the score a bit
-		rand := (rand.Float64() - .5) * (1000. + score) / randomness
+		rand := (rand.Float64() - .5) * randWeight * (10. + score)
+		// log.Println(rand)
 		if score+rand > bestScore {
 			bestScore = score
 			pos = validMoves[i]
@@ -181,6 +182,29 @@ func (b *Board) findBestMove(myPiece Square) *Position {
 	return &pos
 }
 func (b *Board) findBestMoveAlt(myPiece Square) *Position {
+	// Iterate over the top level moves
+	var pos Position
+	bestScore := -99999999.0
+	validMoves := b.findAllValidMoves(myPiece)
+	nrBlack, nrWhite := b.countPieces()
+	randWeight := .0000001 / float64(nrBlack+nrWhite)
+	for i := 0; i < len(validMoves); i++ {
+		bcp := b.copy()
+		bcp.playMove(&validMoves[i], myPiece)
+		score := dynamic_heuristic_evaluation_function_alt(bcp.rows, myPiece)
+		// randomize the score a bit
+		rand := (rand.Float64() - .5) * randWeight * (10. + score)
+		if score+rand > bestScore {
+			bestScore = score
+			pos = validMoves[i]
+		}
+	}
+	if bestScore == -99999999.0 {
+		return nil
+	}
+	return &pos
+}
+func (b *Board) findBestMoveAlt1(myPiece Square) *Position {
 	// Iterate over the top level moves
 	validMoves := []Score{}
 	totalScores := 0.0
@@ -269,19 +293,6 @@ func (b *Board) isValidMove(p *Position, myPiece Square) bool {
 		opp = White
 	}
 	return isLegalMove(myPiece, opp, b.rows, p.x, p.y)
-
-	//	for i := int8(-1); i <= 1; i++ {
-	//		for j := int8(-1); j <= 1; j++ {
-	//			if i == 0 && j == 0 {
-	//				continue
-	//			}
-	//			positions := b.scanDiagonal(p, myPiece, i, j)
-	//			if len(positions) > 0 {
-	//				return true
-	//			}
-	//		}
-	//	}
-	//return false
 }
 func (b *Board) findTurned(p *Position, myPiece Square) []Position {
 	if p == nil || !b.isOnBoard(p) || b.getSquare(p) != Empty {
