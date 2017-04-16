@@ -14,13 +14,13 @@ type MoveStrategy func(*Board, Square) *Position
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
-	// humanVsMachine()
-	machineVsMachine()
+	humanVsMachine()
+	// machineVsMachine()
 }
 
 func humanVsMachine() {
 	go serve()
-	b := playGame(optimusPrime, human)
+	b := playGame(walle, human)
 	if b != nil {
 		blackCount, whiteCount := b.countPieces()
 		fmt.Println("Black: ", blackCount)

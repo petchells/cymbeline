@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	//"log"
 	"math/rand"
 	"regexp"
 	"sort"
@@ -92,7 +91,19 @@ func (b *Board) getSquare(p *Position) Square {
 func (b *Board) setPiece(pos *Position, piece Square) {
 	b.rows[pos.x][pos.y] = piece
 }
-
+func (b *Board) countPieces() (int, int) {
+	wht, blk := 0, 0
+	for i := 0; i < 8; i++ {
+		for j := 0; j < 8; j++ {
+			if b.rows[i][j] == White {
+				wht += 1
+			} else if b.rows[i][j] == Black {
+				blk += 1
+			}
+		}
+	}
+	return blk, wht
+}
 func (b *Board) printboard() {
 	fmt.Print(" ")
 	for i, _ := range b.rows[0] {
@@ -127,31 +138,6 @@ func (b *Board) hasValidMove(myPiece Square) bool {
 		oppPiece = White
 	}
 	return num_valid_moves(myPiece, oppPiece, b.rows) > 0
-}
-
-type ByScore []Score
-
-func (moves ByScore) Len() int {
-	return len(moves)
-}
-func (moves ByScore) Swap(i, j int) {
-	moves[i], moves[j] = moves[j], moves[i]
-}
-func (moves ByScore) Less(i, j int) bool {
-	return moves[j].score < moves[i].score
-}
-func (b *Board) countPieces() (int, int) {
-	wht, blk := 0, 0
-	for i := 0; i < 8; i++ {
-		for j := 0; j < 8; j++ {
-			if b.rows[i][j] == White {
-				wht += 1
-			} else if b.rows[i][j] == Black {
-				blk += 1
-			}
-		}
-	}
-	return blk, wht
 }
 
 /**
