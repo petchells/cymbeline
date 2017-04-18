@@ -1,6 +1,6 @@
 # Cymbeline
 
-A Go app that plays the board game reversi. 
+A Go app that plays the board game Reversi. 
 
 usage: cymbeline [<options>]
 

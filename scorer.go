@@ -15,7 +15,7 @@ var posWeights = [][]int{
 	{-3, -4, -1, -1, -1, -1, -4, -3},
 	{20, -3, 11, 8, 8, 11, -3, 20}}
 
-type Score struct {
+type Move struct {
 	pos   *Position
 	score float64
 }

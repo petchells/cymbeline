@@ -192,7 +192,7 @@ func (b *Board) findBestMoveAlt(myPiece Square) *Position {
 }
 func (b *Board) findBestMoveAlt1(myPiece Square) *Position {
 	// Iterate over the top level moves
-	validMoves := []Score{}
+	validMoves := []Move{}
 	totalScores := 0.0
 	for i := 0; i < len(b.rows[0]); i++ {
 		for j := 0; j < len(b.rows); j++ {
@@ -204,7 +204,7 @@ func (b *Board) findBestMoveAlt1(myPiece Square) *Position {
 				bcp.playMove(pos, myPiece)
 				score := dynamic_heuristic_evaluation_function_alt(bcp.rows, myPiece)
 				totalScores += score
-				validMoves = append(validMoves, Score{pos: pos, score: score})
+				validMoves = append(validMoves, Move{pos: pos, score: score})
 			}
 		}
 	}
@@ -219,7 +219,7 @@ func (b *Board) findBestMoveAlt1(myPiece Square) *Position {
 			return validMoves[i].pos
 		}
 	}
-	var move Score
+	var move Move
 	if l := len(validMoves) / 2; l == 0 {
 		move = validMoves[0]
 	} else {
