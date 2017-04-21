@@ -1,6 +1,7 @@
 package main
 
 import (
+	//"log"
 	"math"
 	"sort"
 )
@@ -23,43 +24,78 @@ type PlyBoard struct {
 	evaluationFunction func([8][8]Square, Square) float64
 }
 
-func (pb *PlyBoard) deepSearch(b *Board, myColour Square, depth int) Move {
-	best := Move{score: math.Inf(-1)}
-	recursiveSearch := func(b *Board, colour Square, depth int) Move {
-		pos := Position{}
+func (pb *PlyBoard) alphabeta(b *Board, myColour Square, depth int) Move {
+
+	var recurse func(*Board, Square, int, float64, float64) float64
+
+	recurse = func(b1 *Board, colour Square, d int, alpha float64, beta float64) float64 {
+		if d == 0 {
+			return pb.evaluationFunction(b1.rows, myColour)
+		}
 		bcp := &Board{}
 		oppColour := pb.oppColour(colour)
-		for i := 0; i < 8; i++ {
-			for j := 0; j < 8; j++ {
-				pos.x, pos.y = i, j
-				if b.isValidMove(pos, colour) {
-					bcp.copyFrom(b)
-					b.playMove(pos, colour)
-					if depth == 0 {
-						score := pb.evaluationFunction(bcp.rows, colour)
-						return Move{pos: &pos, score: score}
-					}
-					// switch sides and go deeper
-					m := pb.recursiveSearch(b, oppColour, depth-1)
-					if m.score > best.score {
-						best
-					}
+		if colour == myColour {
+			vpos := b.findAllValidMoves(colour)
+			v := math.Inf(-1)
+			for _, mv := range vpos {
+				bcp.copyFrom(b1)
+				bcp.playMove(&mv, colour)
+				v := math.Max(v, recurse(bcp, oppColour, d-1, alpha, beta))
+				alpha := math.Max(alpha, v)
+				if beta <= alpha {
+					return v // beta cut-off
 				}
 			}
+			return v
+		} else {
+			vpos := b.findAllValidMoves(oppColour)
+			v := math.Inf(+1)
+			for _, mv := range vpos {
+				bcp.copyFrom(b1)
+				bcp.playMove(&mv, oppColour)
+				v := math.Min(v, recurse(bcp, colour, d-1, alpha, beta))
+				alpha := math.Min(alpha, v)
+				if beta <= alpha {
+					return v // alpha cut-off
+				}
+			}
+			return v
 		}
-		return nil
 	}
-	return best
+
+	moves := pb.findAllMoves(b, myColour)
+	if len(moves) == 0 {
+		return Move{score: 0.0, pos: &Position{-1, -1}}
+	} else if len(moves) == 1 {
+		return moves[0]
+	}
+	// first 'alpha' is sorted -- should make pruning more efficient
+	sort.Sort(sort.Reverse(ByScore(moves)))
+	alpha, beta := math.Inf(-1), math.Inf(+1)
+	bcp := &Board{}
+	oppColour := pb.oppColour(myColour)
+	//log.Println("moves", len(moves))
+	for _, mv := range moves {
+		bcp.copyFrom(b)
+		bcp.playMove(mv.pos, myColour)
+		mv.score = recurse(bcp, oppColour, depth-1, alpha, beta)
+	}
+	sort.Sort(sort.Reverse(ByScore(moves)))
+	return moves[0]
+
+}
+
+func (pb *PlyBoard) deepSearch(b *Board, myColour Square, depth int) Move {
+	return pb.alphabeta(b, myColour, 3)
 }
 
 func (pb *PlyBoard) findAllMoves(b *Board, myColour Square) []Move {
-	var pos Position
 	moves := []Move{}
 	positions := b.findAllValidMoves(myColour)
 	bcp := &Board{}
-	for _, move := range positions {
+	for _, pos := range positions {
 		bcp.copyFrom(b)
-		bcp.playMove(&move, myColour)
+		bcp.playMove(&pos, myColour)
 		score := pb.evaluationFunction(bcp.rows, myColour)
 		moves = append(moves, Move{pos: &pos, score: score})
 	}

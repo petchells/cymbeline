@@ -20,7 +20,7 @@ func main() {
 
 func humanVsMachine() {
 	go serve()
-	b := playGame(walle, human)
+	b := playGame(optimusPrime, human)
 	if b != nil {
 		blackCount, whiteCount := b.countPieces()
 		fmt.Println("Black: ", blackCount)
@@ -92,8 +92,10 @@ func playGame(p1Mover MoveStrategy, p2Mover MoveStrategy) *Board {
 	return b
 }
 func optimusPrime(b *Board, colour Square) *Position {
-	move := b.findBestMove(colour)
-	return move
+	//move := b.findBestMove(colour)
+	pb := PlyBoard{evaluationFunction: dynamic_heuristic_evaluation_function_alt}
+	mv := pb.deepSearch(b, colour, 3)
+	return mv.pos
 }
 func walle(b *Board, colour Square) *Position {
 	move := b.findBestMoveAlt(colour)
