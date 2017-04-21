@@ -30,7 +30,8 @@ func (pb *PlyBoard) alphabeta(b *Board, myColour Square, depth int) Move {
 
 	recurse = func(b1 *Board, colour Square, d int, alpha float64, beta float64) float64 {
 		if d == 0 {
-			return pb.evaluationFunction(b1.rows, myColour)
+			//log.Println("evaluating for ", enumToColour(colour))
+			return pb.evaluationFunction(b1.rows, colour)
 		}
 		bcp := &Board{}
 		oppColour := pb.oppColour(colour)
@@ -41,7 +42,7 @@ func (pb *PlyBoard) alphabeta(b *Board, myColour Square, depth int) Move {
 				bcp.copyFrom(b1)
 				bcp.playMove(&mv, colour)
 				v := math.Max(v, recurse(bcp, oppColour, d-1, alpha, beta))
-				alpha := math.Max(alpha, v)
+				alpha = math.Max(alpha, v)
 				if beta <= alpha {
 					return v // beta cut-off
 				}
@@ -54,7 +55,7 @@ func (pb *PlyBoard) alphabeta(b *Board, myColour Square, depth int) Move {
 				bcp.copyFrom(b1)
 				bcp.playMove(&mv, oppColour)
 				v := math.Min(v, recurse(bcp, colour, d-1, alpha, beta))
-				alpha := math.Min(alpha, v)
+				beta = math.Min(alpha, v)
 				if beta <= alpha {
 					return v // alpha cut-off
 				}
@@ -70,17 +71,24 @@ func (pb *PlyBoard) alphabeta(b *Board, myColour Square, depth int) Move {
 		return moves[0]
 	}
 	// first 'alpha' is sorted -- should make pruning more efficient
-	sort.Sort(sort.Reverse(ByScore(moves)))
-	alpha, beta := math.Inf(-1), math.Inf(+1)
+	sort.Sort(ByScore(moves))
+	beta := math.Inf(+1)
 	bcp := &Board{}
 	oppColour := pb.oppColour(myColour)
-	//log.Println("moves", len(moves))
+	//log.Println("================")
 	for _, mv := range moves {
+		//log.Println("Move: ", mv.pos.AsString(), mv.score)
 		bcp.copyFrom(b)
 		bcp.playMove(mv.pos, myColour)
-		mv.score = recurse(bcp, oppColour, depth-1, alpha, beta)
+		mv.score = recurse(bcp, oppColour, depth-1, math.Inf(-1), beta)
+		//log.Println("Move: ", mv.pos.AsString(), mv.score)
+
+		//		alpha = math.Max(alpha, v)
+		//		if beta <= alpha {
+		//			return mv // beta cut-off
+		//		}
 	}
-	sort.Sort(sort.Reverse(ByScore(moves)))
+	sort.Sort(ByScore(moves))
 	return moves[0]
 
 }
@@ -97,7 +105,7 @@ func (pb *PlyBoard) findAllMoves(b *Board, myColour Square) []Move {
 		bcp.copyFrom(b)
 		bcp.playMove(&pos, myColour)
 		score := pb.evaluationFunction(bcp.rows, myColour)
-		moves = append(moves, Move{pos: &pos, score: score})
+		moves = append(moves, Move{pos: &Position{pos.x, pos.y}, score: score})
 	}
 	return moves
 }

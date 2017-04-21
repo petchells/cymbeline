@@ -14,8 +14,8 @@ type MoveStrategy func(*Board, Square) *Position
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
-	humanVsMachine()
-	// machineVsMachine()
+	//humanVsMachine()
+	machineVsMachine()
 }
 
 func humanVsMachine() {
