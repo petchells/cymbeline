@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"regexp"
-	"sort"
 )
 
 type Square int
@@ -189,43 +188,6 @@ func (b *Board) findBestMoveAlt(myPiece Square) *Position {
 		return nil
 	}
 	return &pos
-}
-func (b *Board) findBestMoveAlt1(myPiece Square) *Position {
-	// Iterate over the top level moves
-	validMoves := []Move{}
-	totalScores := 0.0
-	for i := 0; i < len(b.rows[0]); i++ {
-		for j := 0; j < len(b.rows); j++ {
-			pos := &Position{
-				x: i,
-				y: j}
-			if b.isValidMove(pos, myPiece) {
-				bcp := b.copy()
-				bcp.playMove(pos, myPiece)
-				score := dynamic_heuristic_evaluation_function_alt(bcp.rows, myPiece)
-				totalScores += score
-				validMoves = append(validMoves, Move{pos: pos, score: score})
-			}
-		}
-	}
-	if len(validMoves) == 0 {
-		return nil
-	}
-	sort.Sort(ByScore(validMoves))
-	pick := rand.Float64() * totalScores
-	for i := 0; i < len(validMoves); i++ {
-		totalScores -= validMoves[i].score
-		if pick >= totalScores {
-			return validMoves[i].pos
-		}
-	}
-	var move Move
-	if l := len(validMoves) / 2; l == 0 {
-		move = validMoves[0]
-	} else {
-		move = validMoves[rand.Intn(l)]
-	}
-	return move.pos
 }
 func (b *Board) isOnBoard(p *Position) bool {
 	return p.x >= 0 && p.y >= 0 && p.x < 8 && p.y < 8

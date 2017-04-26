@@ -14,8 +14,8 @@ type MoveStrategy func(*Board, Square) *Position
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
-	//humanVsMachine()
-	machineVsMachine()
+	humanVsMachine()
+	//machineVsMachine(25)
 }
 
 func humanVsMachine() {
@@ -29,10 +29,10 @@ func humanVsMachine() {
 		fmt.Println("Quit")
 	}
 }
-func machineVsMachine() {
+func machineVsMachine(nrRounds int) {
 	var b *Board
 	opCnt, waCnt := 0, 0
-	for n := 0; n < 50; n++ {
+	for n := 0; n < nrRounds; n++ {
 		b = playGame(optimusPrime, walle)
 		if b != nil {
 			blackCount, whiteCount := b.countPieces()
@@ -94,11 +94,11 @@ func playGame(p1Mover MoveStrategy, p2Mover MoveStrategy) *Board {
 func optimusPrime(b *Board, colour Square) *Position {
 	//move := b.findBestMove(colour)
 	pb := PlyBoard{evaluationFunction: dynamic_heuristic_evaluation_function_alt}
-	mv := pb.deepSearch(b, colour, 3)
+	mv := pb.deepSearch(b, colour)
 	return mv.pos
 }
 func walle(b *Board, colour Square) *Position {
-	move := b.findBestMoveAlt(colour)
+	move := b.findBestMove(colour)
 	return move
 }
 func human(b *Board, colour Square) *Position {
