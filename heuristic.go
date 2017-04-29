@@ -1,5 +1,9 @@
 package main
 
+import (
+	"math/rand"
+)
+
 /** https://courses.cs.washington.edu/courses/cse573/04au/Project/mini1/RUSSIA/Final_Paper.pdf
  */
 func canmove(self Square, opp Square, str [10]Square) bool {
@@ -424,8 +428,8 @@ func dynamic_heuristic_evaluation_function_alt(grid [8][8]Square, my_color Squar
 	} else {
 		m = 0
 	}
-
+	dither := rand.Float64() * 0
 	// final weighted score
-	score := (12 * p) + (801.724 * float64(c)) + (382.026 * l) + (78.922 * m) + (74.396 * f) + float64(9*d)
+	score := (12. * p) + (801.724 * float64(c)) + (382.026 * l) + (78.922 * m) + (74.396 * f) + float64(9.*d) + dither
 	return score
 }

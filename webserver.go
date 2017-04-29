@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -12,6 +13,7 @@ type JsonMoveResponse struct {
 	Turned    string `json:"turned"`
 	NextValid string `json:"nextValid"`
 	Played    string `json:"played"`
+	Score     string `json:"score"`
 }
 
 func serve() {
@@ -19,7 +21,7 @@ func serve() {
 	fs := http.FileServer(http.Dir("dist"))
 	http.Handle("/", fs)
 	http.HandleFunc("/rpc/", rpcHandler)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8088", nil))
 }
 
 func rpcHandler(w http.ResponseWriter, r *http.Request) {
@@ -53,6 +55,7 @@ func rpcHandler(w http.ResponseWriter, r *http.Request) {
 	var position *Position
 	var moveResp JsonMoveResponse
 	positionStr := ""
+	scoreStr := ""
 
 	if strings.EqualFold(funcName, "findValidMoves") {
 		allValid := b.findAllValidMoves(oppColour)
@@ -72,9 +75,11 @@ func rpcHandler(w http.ResponseWriter, r *http.Request) {
 		positionStr = position.AsString()
 	} else if strings.EqualFold(funcName, "findBestMove") {
 		plyBoard := PlyBoard{dynamic_heuristic_evaluation_function_alt}
-		position = plyBoard.deepSearch(b, colour).pos
-		if position != nil {
-			positionStr = position.AsString()
+		move := plyBoard.deepSearch(b, colour)
+		if move.pos != nil {
+			positionStr = move.pos.AsString()
+			scoreStr = fmt.Sprintf("%0.6f", move.score)
+			position = move.pos
 		}
 	}
 	turned := b.findTurned(position, colour)
@@ -84,6 +89,9 @@ func rpcHandler(w http.ResponseWriter, r *http.Request) {
 		Turned:    positionsToString(turned),
 		NextValid: positionsToString(allValid),
 		Played:    positionStr,
+	}
+	if len(scoreStr) != 0 {
+		moveResp.Score = scoreStr
 	}
 	json.NewEncoder(w).Encode(moveResp)
 }

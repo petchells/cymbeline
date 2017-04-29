@@ -3,6 +3,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"math/rand"
 	"os"
@@ -14,12 +15,25 @@ type MoveStrategy func(*Board, Square) *Position
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
-	humanVsMachine()
-	//machineVsMachine(25)
+	webflag := flag.Bool("web", false, "enable web server on port 8088")
+	termflag := flag.Bool("term", false, "play a game in the terminal")
+	soloflag := flag.Bool("solo", false, "plays with itself")
+	flag.Parse()
+	if *webflag {
+		go serve()
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Println("Server running on http://localhost:8088/")
+		fmt.Println("Press Enter to quit")
+		reader.ReadString('\n')
+	} else if *termflag {
+		humanVsMachine()
+	} else if *soloflag {
+		fmt.Println("Optimus Prime is playing 50 games against Wall-E...")
+		machineVsMachine(25)
+	}
 }
 
 func humanVsMachine() {
-	go serve()
 	b := playGame(optimusPrime, human)
 	if b != nil {
 		blackCount, whiteCount := b.countPieces()
@@ -98,8 +112,9 @@ func optimusPrime(b *Board, colour Square) *Position {
 	return mv.pos
 }
 func walle(b *Board, colour Square) *Position {
-	move := b.findBestMove(colour)
-	return move
+	pb := PlyBoard{evaluationFunction: dynamic_heuristic_evaluation_function_alt}
+	move := pb.findBestMoveDither(b, colour)
+	return move.pos
 }
 func human(b *Board, colour Square) *Position {
 	b.printboard()

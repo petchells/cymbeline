@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 	"regexp"
 )
 
@@ -70,8 +69,6 @@ func (p *Position) AsString() string {
 	return fmt.Sprintf("%c%c", 65+p.y, 49+p.x)
 }
 func newBoard() *Board {
-	// The number of rows and columns doesn't need to be 8 (the code uses
-	// len(rows) when iterating). It *does* have to be square, though.
 	var rows [8][8]Square
 	rows = [8][8]Square{
 		{Empty, Empty, Empty, Empty, Empty, Empty, Empty, Empty},
@@ -139,56 +136,6 @@ func (b *Board) hasValidMove(myPiece Square) bool {
 	return num_valid_moves(myPiece, oppPiece, b.rows) > 0
 }
 
-/**
- * Find the best move for a given board position
- */
-func (b *Board) findBestMove(myPiece Square) *Position {
-	// Iterate over the top level moves
-	var pos Position
-	bestScore := -99999999.0
-	validMoves := b.findAllValidMoves(myPiece)
-	nrBlack, nrWhite := b.countPieces()
-	randWeight := .0000001 / float64(nrBlack+nrWhite)
-	for i := 0; i < len(validMoves); i++ {
-		bcp := b.copy()
-		bcp.playMove(&validMoves[i], myPiece)
-		score := dynamic_heuristic_evaluation_function(bcp.rows, myPiece)
-		// randomize the score a bit
-		rand := (rand.Float64() - .5) * randWeight * (10. + score)
-		// log.Println(rand)
-		if score+rand > bestScore {
-			bestScore = score
-			pos = validMoves[i]
-		}
-	}
-	if bestScore == -99999999.0 {
-		return nil
-	}
-	return &pos
-}
-func (b *Board) findBestMoveAlt(myPiece Square) *Position {
-	// Iterate over the top level moves
-	var pos Position
-	bestScore := -99999999.0
-	validMoves := b.findAllValidMoves(myPiece)
-	nrBlack, nrWhite := b.countPieces()
-	randWeight := .0000001 / float64(nrBlack+nrWhite)
-	for i := 0; i < len(validMoves); i++ {
-		bcp := b.copy()
-		bcp.playMove(&validMoves[i], myPiece)
-		score := dynamic_heuristic_evaluation_function_alt(bcp.rows, myPiece)
-		// randomize the score a bit
-		rand := (rand.Float64() - .5) * randWeight * (10. + score)
-		if score+rand > bestScore {
-			bestScore = score
-			pos = validMoves[i]
-		}
-	}
-	if bestScore == -99999999.0 {
-		return nil
-	}
-	return &pos
-}
 func (b *Board) isOnBoard(p *Position) bool {
 	return p.x >= 0 && p.y >= 0 && p.x < 8 && p.y < 8
 }

@@ -18,11 +18,14 @@ func TestPlyBoardFull(t *testing.T) {
 	board.rows[0][7] = Empty
 	board.rows[1][7] = Black
 	pb := PlyBoard{dynamic_heuristic_evaluation_function}
-	score := dynamic_heuristic_evaluation_function(board.rows, Black)
+
 	move := pb.deepSearch(board, Black)
 	if move.score != -12416.295634920636 {
 		t.Errorf("Expected %f but got %f", -12416.295634920636, move.score)
 	}
+
+	board.playMove(move.pos, Black)
+	score := dynamic_heuristic_evaluation_function(board.rows, Black)
 	if score != -12416.295634920636 {
 		t.Errorf("Expected %f but got %f", -12416.295634920636, score)
 	}
@@ -32,14 +35,15 @@ func TestPlyBoardStart(t *testing.T) {
 
 	board := newBoard()
 	pb := PlyBoard{dynamic_heuristic_evaluation_function}
-	score := dynamic_heuristic_evaluation_function(board.rows, Black)
 	move := pb.deepSearch(board, Black)
 	fmt.Println("move", move.pos.AsString(), move.score)
-	if move.score != -12416.295634920636 {
-		t.Errorf("Expected %f but got %f", -12416.295634920636, move.score)
+	if move.score != -5191.68 {
+		t.Errorf("Expected %f but got %f", -5191.68, move.score)
 	}
-	if score != -12416.295634920636 {
-		t.Errorf("Expected %f but got %f", -12416.295634920636, score)
+	board.playMove(move.pos, Black)
+	score := dynamic_heuristic_evaluation_function(board.rows, White)
+	if score != 5191.68 {
+		t.Errorf("Expected %f but got %f", 5191.68, score)
 	}
 }
 
