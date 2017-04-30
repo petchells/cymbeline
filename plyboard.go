@@ -2,6 +2,7 @@ package main
 
 import (
 	//"log"
+	//"fmt"
 	"math"
 	"math/rand"
 	"sort"
@@ -64,7 +65,7 @@ func (pb *PlyBoard) alphabeta(b *Board, myColour Square, depth int) Move {
 			if len(vpos) == 0 {
 				//				vposOpp := b1.findAllValidMoves(oppColour)
 				//				if len(vposOpp) == 0 {
-				return pb.evaluationFunction(b1.rows, myColour)
+				return pb.evaluationFunction(b1.rows, oppColour)
 				//				} else {
 				//					v = math.Max(v, recurse(bcp, oppColour, d, alpha, beta))
 				//				}
@@ -95,52 +96,62 @@ func (pb *PlyBoard) alphabeta(b *Board, myColour Square, depth int) Move {
 	alpha, beta := math.Inf(-1), math.Inf(+1)
 	bcp := &Board{}
 	oppColour := pb.oppColour(myColour)
-	//log.Println("================")
 	for _, mv := range moves {
-		//log.Println("Move: ", mv.pos.AsString(), mv.score)
 		bcp.copyFrom(b)
 		bcp.playMove(mv.pos, myColour)
 		mv.score = recurse(bcp, oppColour, depth-1, alpha, beta)
-		//log.Println("Move: ", mv.pos.AsString(), mv.score)
-		//		alpha = math.Max(alpha, v)
-		//		if beta <= alpha {
-		//			return mv // beta cut-off
-		//		}
 	}
 	sort.Sort(ByScore(moves))
-	return moves[0]
+	//fmt.Println("---")
+	var best []Move
+	for i, mv := range moves {
+		//fmt.Println("mv", mv.pos.AsString(), mv.score)
+		if i == 0 {
+			best = append(best, mv)
+		} else {
+			if mv.score >= best[0].score {
+				best = append(best, mv)
+			}
+		}
+	}
+	//	for _, mv := range best {
+	//		fmt.Println("best", mv.pos.AsString(), mv.score)
+	//	}
+	return best[rand.Intn(len(best))]
 }
 
 func (pb *PlyBoard) deepSearch(b *Board, myColour Square) Move {
-	return pb.alphabeta(b, myColour, 1)
+	return pb.alphabeta(b, myColour, 3)
 }
 
 /**
- * Find the best move for a given board position
+ * Find the best move for a given board position. Single ply
  */
-func (pb *PlyBoard) findBestMove(b *Board, myPiece Square) *Position {
-	// Iterate over the top level moves
-	var pos Position
-	bestScore := -99999999.0
-	validMoves := b.findAllValidMoves(myPiece)
-	nrBlack, nrWhite := b.countPieces()
-	randWeight := .0000001 / float64(nrBlack+nrWhite)
-	for i := 0; i < len(validMoves); i++ {
-		bcp := b.copy()
-		bcp.playMove(&validMoves[i], myPiece)
-		score := pb.evaluationFunction(bcp.rows, myPiece)
-		// randomize the score a bit
-		rand := (rand.Float64() - .5) * randWeight * (10. + score)
-		// log.Println(rand)
-		if score+rand > bestScore {
-			bestScore = score
-			pos = validMoves[i]
+func (pb *PlyBoard) findBestMove(b *Board, myPiece Square) Move {
+	moves := pb.findAllMoves(b, myPiece)
+	if len(moves) == 0 {
+		return Move{}
+	}
+	if len(moves) == 1 {
+		return moves[0]
+	}
+	sort.Sort(ByScore(moves))
+	//	fmt.Println("---")
+	var best []Move
+	for i, mv := range moves {
+		//		fmt.Println("mv", mv.pos.AsString(), mv.score)
+		if i == 0 {
+			best = append(best, mv)
+		} else {
+			if mv.score >= best[0].score {
+				best = append(best, mv)
+			}
 		}
 	}
-	if bestScore == -99999999.0 {
-		return nil
-	}
-	return &pos
+	//	for _, mv := range best {
+	//		fmt.Println("best", mv.pos.AsString(), mv.score)
+	//	}
+	return best[rand.Intn(len(best))]
 }
 func (pb *PlyBoard) findBestMoveDither(b *Board, myPiece Square) Move {
 	// Iterate over the top level moves
@@ -148,7 +159,7 @@ func (pb *PlyBoard) findBestMoveDither(b *Board, myPiece Square) Move {
 	bestScore := -99999999.0
 	validMoves := b.findAllValidMoves(myPiece)
 	nrBlack, nrWhite := b.countPieces()
-	randWeight := 1e-16 / float64(nrBlack+nrWhite)
+	randWeight := 1e-14 / float64(nrBlack+nrWhite)
 	for i := 0; i < len(validMoves); i++ {
 		bcp := b.copy()
 		bcp.playMove(&validMoves[i], myPiece)

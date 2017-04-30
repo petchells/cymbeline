@@ -107,9 +107,9 @@ func playGame(p1Mover MoveStrategy, p2Mover MoveStrategy) *Board {
 }
 func optimusPrime(b *Board, colour Square) *Position {
 	//move := b.findBestMove(colour)
-	pb := PlyBoard{evaluationFunction: dynamic_heuristic_evaluation_function_alt}
-	mv := pb.deepSearch(b, colour)
-	return mv.pos
+	pb := PlyBoard{evaluationFunction: dynamic_heuristic_evaluation_function}
+	move := pb.deepSearch(b, colour)
+	return move.pos
 }
 func walle(b *Board, colour Square) *Position {
 	pb := PlyBoard{evaluationFunction: dynamic_heuristic_evaluation_function_alt}
