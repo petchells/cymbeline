@@ -7,15 +7,19 @@ import (
 
 type Square int
 
-const (
-	Empty Square = 1 << iota
-	Black
-	White
-)
-
 type Board struct {
 	rows [8][8]Square
 }
+
+type Position struct {
+	x, y int
+}
+
+const (
+	Empty Square = 1 + iota
+	Black
+	White
+)
 
 func (b *Board) copy() *Board {
 	cp := [8][8]Square{}
@@ -33,10 +37,6 @@ func (b *Board) copyFrom(from *Board) {
 			b.rows[i][j] = from.rows[i][j]
 		}
 	}
-}
-
-type Position struct {
-	x, y int
 }
 
 var validPositionString = regexp.MustCompile(`^[A-Z][1-8]$`)

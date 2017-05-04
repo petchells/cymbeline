@@ -40,12 +40,20 @@ func (pb *PlyBoard) alphabeta(b *Board, myColour Square, depth int) Move {
 			v := math.Inf(-1)
 			vpos := b1.findAllValidMoves(colour)
 			if len(vpos) == 0 {
-				//				vposOpp := b1.findAllValidMoves(oppColour)
-				//				if len(vposOpp) == 0 {
-				return pb.evaluationFunction(b1.rows, myColour)
-				//				} else {
-				//					v = math.Max(v, recurse(bcp, oppColour, d, alpha, beta))
-				//				}
+				vposOpp := b1.findAllValidMoves(oppColour)
+				if len(vposOpp) == 0 {
+					// the end.
+					nrB, nrW := b.countPieces()
+					if (nrB > nrW && myColour == Black) || (nrW > nrB && myColour == White) {
+						return 1e+10 - math.Mod(float64(nrB), float64(nrW))
+					} else if nrB == nrW {
+						return 0.
+					} else {
+						return 1e-10 + math.Mod(float64(nrB), float64(nrW))
+					}
+				}
+				bcp.copyFrom(b1)
+				return recurse(bcp, oppColour, d-1, alpha, beta)
 			} else {
 				for _, mv := range vpos {
 					bcp.copyFrom(b1)
@@ -63,12 +71,20 @@ func (pb *PlyBoard) alphabeta(b *Board, myColour Square, depth int) Move {
 			v := math.Inf(+1)
 			vpos := b.findAllValidMoves(colour)
 			if len(vpos) == 0 {
-				//				vposOpp := b1.findAllValidMoves(oppColour)
-				//				if len(vposOpp) == 0 {
-				return pb.evaluationFunction(b1.rows, oppColour)
-				//				} else {
-				//					v = math.Max(v, recurse(bcp, oppColour, d, alpha, beta))
-				//				}
+				vposOpp := b1.findAllValidMoves(oppColour)
+				if len(vposOpp) == 0 {
+					// the end.
+					nrB, nrW := b.countPieces()
+					if (nrB > nrW && myColour == Black) || (nrW > nrB && myColour == White) {
+						return 1e+10 - math.Mod(float64(nrB), float64(nrW))
+					} else if nrB == nrW {
+						return 0.
+					} else {
+						return 1e-10 + math.Mod(float64(nrB), float64(nrW))
+					}
+				}
+				bcp.copyFrom(b1)
+				return recurse(bcp, myColour, d-1, alpha, beta)
 			} else {
 				for _, mv := range vpos {
 					bcp.copyFrom(b1)
@@ -114,14 +130,11 @@ func (pb *PlyBoard) alphabeta(b *Board, myColour Square, depth int) Move {
 			}
 		}
 	}
-	//	for _, mv := range best {
-	//		fmt.Println("best", mv.pos.AsString(), mv.score)
-	//	}
 	return best[rand.Intn(len(best))]
 }
 
 func (pb *PlyBoard) deepSearch(b *Board, myColour Square) Move {
-	return pb.alphabeta(b, myColour, 3)
+	return pb.alphabeta(b, myColour, 9)
 }
 
 /**
